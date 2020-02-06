@@ -2,6 +2,7 @@
 using Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ namespace BusinessLogicalLayer
     /// </summary>
     public class ClienteBLL : IEntityCRUD<Cliente>
     {
-        private ClienteDAL dal = new ClienteDAL();
+        
         public Response Insert(Cliente item)
         {
             Response response = Validate(item);
@@ -29,8 +30,14 @@ namespace BusinessLogicalLayer
             //Se chegou aqui, bora pro DAL!
             //Retorna a resposta do DAL! Se tiver dúvidas do que é esta resposta,
             //analise o método do DAL!
-            return dal.Insert(item);
+            //return dal.Insert(item);
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                db.Clientes.Add(item);
+                db.SaveChanges();
 
+            }
+            return response;
         }
         public Response Delete(int id)
         {
@@ -44,7 +51,14 @@ namespace BusinessLogicalLayer
                 response.Sucesso = false;
                 return response;
             }
-            return dal.Delete(id);
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                Cliente clienteASerExcluido = new Cliente();
+                clienteASerExcluido.ID = id;
+                db.Entry<Cliente>(clienteASerExcluido).State = System.Data.Entity.EntityState.Deleted;
+                db.SaveChanges();
+            }
+            return response;  
         }
 
         public Response Update(Cliente item)
@@ -58,12 +72,35 @@ namespace BusinessLogicalLayer
                 response.Sucesso = false;
                 return response;
             }
-            return dal.Update(item);
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                Cliente clienteASerAtualizado = new Cliente();
+                clienteASerAtualizado.ID = item.ID;
+                db.Entry<Cliente>(clienteASerAtualizado).State = System.Data.Entity.EntityState.Modified;
+                db.SaveChanges();
+            }
+            return response;
         }
 
         public DataResponse<Cliente> GetData()
         {
-            return dal.GetData();
+            DataResponse<Cliente> response = new DataResponse<Cliente>();
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                try
+                {
+                    response.Data = db.Clientes.ToList();
+                    response.Sucesso = true;
+                    response.GetErrorMessage();
+                }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+            }
+            return response;
         }
 
         public DataResponse<Cliente> GetByID(int id)
