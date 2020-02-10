@@ -1,2 +1,1 @@
-The DELETE statement conflicted with the REFERENCE constraint "FK_LOCACOES_CLIENTES". The conflict occurred in database "XLOCADORA", table "dbo.LOCACOES", column 'CLIENTE'.
-The statement has been terminated.
+Validation failed for one or more entities. See 'EntityValidationErrors' property for more details.

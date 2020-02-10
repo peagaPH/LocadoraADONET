@@ -2,6 +2,7 @@
 using Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,8 +17,6 @@ namespace BusinessLogicalLayer
     public class GeneroBLL : IEntityCRUD<Genero>
     {
 
-        private GeneroDAL dal = new GeneroDAL();
-
         public Response Insert(Genero item)
         {
             Response response = Validate(item);
@@ -27,8 +26,14 @@ namespace BusinessLogicalLayer
                 return response;
             }
 
-            return dal.Insert(item);
-        
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                db.Generos.Add(item);
+                db.SaveChanges();
+            }
+            response.Sucesso = true;
+            return response;
+
         }
         public Response Update(Genero item)
         {
@@ -38,8 +43,14 @@ namespace BusinessLogicalLayer
                 response.Sucesso = false;
                 return response;
             }
-
-            return dal.Update(item);
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                
+                db.Entry<Genero>(item).State = System.Data.Entity.EntityState.Modified;
+                db.SaveChanges();
+            }
+            response.Sucesso = true;
+            return response;
         }
         public Response Delete(int id)
         {
@@ -53,17 +64,58 @@ namespace BusinessLogicalLayer
                 response.Sucesso = false;
                 return response;
             }
-            return dal.Delete(id);
+            using(LocadoraDbContext db = new LocadoraDbContext())
+            {
+                db.Generos.Remove(db.Generos.Find(id));
+                db.SaveChanges();
+            }
+            response.Sucesso = true;
+            return response;
         }
 
         public DataResponse<Genero> GetData()
         {
-            return dal.GetData();
+            DataResponse<Genero> response = new DataResponse<Genero>();
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+                try
+                {
+                    response.Data = db.Generos.ToList();
+                    response.Sucesso = true;
+                }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+            }
+            response.Sucesso = true;
+            return response;
         }
 
         public DataResponse<Genero> GetByID(int id)
         {
-            return dal.GetByID(id);
+            DataResponse<Genero> response = new DataResponse<Genero>();
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+
+                try
+                {
+                    Genero genero = db.Generos.FirstOrDefault(x => x.ID == id);
+                    response.Data.Add(genero);
+
+                    response.Sucesso = true;
+                }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+            }
+            response.Sucesso = true;
+            return response;
         }
         private Response Validate(Genero item)
         {
@@ -83,6 +135,7 @@ namespace BusinessLogicalLayer
                     response.Erros.Add("O nome do gênero deve conter entre 2 e 50 caracteres");
                 }
             }
+            response.Sucesso = true;
             return response;
         }
     }

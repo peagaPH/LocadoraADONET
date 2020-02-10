@@ -61,6 +61,7 @@
     <Compile Include="IFuncionarioService.cs" />
     <Compile Include="ILocacaoService.cs" />
     <Compile Include="Locacao.cs" />
+    <Compile Include="LocacaoFilme.cs" />
     <Compile Include="Response.cs" />
     <Compile Include="Genero.cs" />
     <Compile Include="IEntityCRUD.cs" />

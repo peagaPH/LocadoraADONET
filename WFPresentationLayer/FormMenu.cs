@@ -44,18 +44,7 @@ namespace WFPresentationLayer
             this.Show();
         }
 
-        private void FormMenu_Load(object sender, EventArgs e)
-        {
-            this.toolStripStatusLabel1.Text = User.FuncionarioLogado.Nome;
-            timer.Interval = 1000;
-            timer.Tick += Timer_Tick;
-            timer.Start();
-        }
 
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            this.toolStripStatusLabel2.Text = DateTime.Now.ToString("dd/MM/yyyy - HH:mm:ss");
-        }
 
         private void locaçãoToolStripMenuItem_Click(object sender, EventArgs e)
         {

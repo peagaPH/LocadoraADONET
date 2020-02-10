@@ -2,6 +2,7 @@
 using Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,8 +12,7 @@ namespace BusinessLogicalLayer
 {
     public class LocacaoBLL : ILocacaoService
     {
-        private LocacaoDAL locacaoDAL = new LocacaoDAL();
-
+        LocacaoBLL bll = new LocacaoBLL();
         public Response EfetuarLocacao(Locacao locacao)
         {
             Response response = new Response();
@@ -57,7 +57,7 @@ namespace BusinessLogicalLayer
                 return response;
             }
 
-
+            LocacaoFilme locacaoFilme = new LocacaoFilme();
             //Necessário (dependendo da equipe que você estiver alocado)
             //Vai ao banco de dados com a finalidade de descobrir se o ID
             //do cliente associado a locação existe no banco de dados.
@@ -69,24 +69,36 @@ namespace BusinessLogicalLayer
 
             //Utilizaremos aqui, o objeto TransactionScope para garantir que, tudo que 
             //esta entre as chaves rodará em uma transação onde OU TUDO FUNCIONA, OU NADA FUNCIONA.
-            using (TransactionScope scope = new TransactionScope())
+            using (LocadoraDbContext db = new LocadoraDbContext())
             {
-                //Cadastra a locacao no banco de dados e ainda escreve
-                //no objeto locacao o ID gerado pelo base.
-                response = locacaoDAL.EfetuarLocacao(locacao);
-                if (response.Sucesso)
+                
+                try
                 {
-                    //Efetuar as inserções na tabela N para N
-                    response = locacaoDAL.EfetuarLocacaoFilmes(locacao);
+                    db.Locacoes.Add(locacao);
+                    response.Sucesso = true;
                     if (response.Sucesso)
                     {
-                        //Se der certo, "commita" a operação.
-                        //Chamar o Complete significa que deu tudo certo
-                        scope.Complete();
+                        foreach (Filme item in locacao.Filmes)
+                        {
+                            locacaoFilme.Locacao = locacao;
+                            locacaoFilme.Filme = item;
+                            db.LocacaoFilmes.Add(locacaoFilme);
+                        }
+                        response.Sucesso = true;
                     }
+                    db.SaveChanges();
                 }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+                
             }//Ao chegar no final das chaves, caso o complete não seja chamado, o c# reverterá
              //todas as operações em banco de dados efetuada dentro deste using
+            response.Sucesso = true;
+
             return response;
         }
     }

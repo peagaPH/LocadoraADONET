@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\BusinessLogicalLayer"
   ],
-  "SelectedNode": "\\XXXLocadora.sln",
+  "SelectedNode": "\\BusinessLogicalLayer\\ClienteBLL.cs",
   "PreviewInSolutionExplorer": false
 }

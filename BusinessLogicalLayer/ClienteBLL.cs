@@ -37,6 +37,8 @@ namespace BusinessLogicalLayer
                 db.SaveChanges();
 
             }
+            response.Sucesso = true;
+
             return response;
         }
         public Response Delete(int id)
@@ -53,11 +55,11 @@ namespace BusinessLogicalLayer
             }
             using (LocadoraDbContext db = new LocadoraDbContext())
             {
-                Cliente clienteASerExcluido = new Cliente();
-                clienteASerExcluido.ID = id;
-                db.Entry<Cliente>(clienteASerExcluido).State = System.Data.Entity.EntityState.Deleted;
+                db.Clientes.Remove(db.Clientes.Find(id));
                 db.SaveChanges();
             }
+            response.Sucesso = true;
+
             return response;  
         }
 
@@ -67,19 +69,32 @@ namespace BusinessLogicalLayer
             //TODO: Verificar a existência desse gênero na base de dados
             //generoBLL.LerID(item.GeneroID);
             //Verifica se tem erros!
+            
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+
+                try
+                {
+                    db.Entry<Cliente>(item).State = System.Data.Entity.EntityState.Modified;
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+                
+            }
             if (response.Erros.Count != 0)
             {
                 response.Sucesso = false;
                 return response;
             }
-            using (LocadoraDbContext db = new LocadoraDbContext())
-            {
-                Cliente clienteASerAtualizado = new Cliente();
-                clienteASerAtualizado.ID = item.ID;
-                db.Entry<Cliente>(clienteASerAtualizado).State = System.Data.Entity.EntityState.Modified;
-                db.SaveChanges();
-            }
+            response.Sucesso = true;
+
             return response;
+
         }
 
         public DataResponse<Cliente> GetData()
@@ -100,12 +115,33 @@ namespace BusinessLogicalLayer
                     File.WriteAllText("log.txt", ex.Message);
                 }
             }
+            response.Sucesso = true;
+
             return response;
         }
 
         public DataResponse<Cliente> GetByID(int id)
         {
-            return dal.GetByID(id);
+            DataResponse<Cliente> response = new DataResponse<Cliente>();
+            using (LocadoraDbContext db = new LocadoraDbContext())
+            {
+
+                try
+                {
+                    Cliente cliente = db.Clientes.FirstOrDefault(x => x.ID == id);
+                    response.Data.Add(cliente);
+                    response.Sucesso = true;
+                }
+                catch (Exception ex)
+                {
+                    response.Sucesso = false;
+                    response.Erros.Add("Erros no banco de dados, contate o adm");
+                    File.WriteAllText("log.txt", ex.Message);
+                }
+            }
+            response.Sucesso = true;
+
+            return response;
         }
 
         private Response Validate(Cliente item)
@@ -141,6 +177,8 @@ namespace BusinessLogicalLayer
                     response.Erros.Add("O email do cliente deve conter entre 2 e 50 caracteres");
                 }
             }
+            response.Sucesso = true;
+
             return response;
         }
     }

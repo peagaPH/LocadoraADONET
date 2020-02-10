@@ -21,6 +21,7 @@ namespace DataAccessLayer
         public DbSet<Funcionario> Funcionarios { get; set; }
         public DbSet<Genero> Generos { get; set; }
         public DbSet<Locacao> Locacoes { get; set; }
+        public DbSet<LocacaoFilme> LocacaoFilmes { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -33,9 +34,13 @@ namespace DataAccessLayer
                 .Configure(c => c.IsRequired().IsUnicode(false));
 
             modelBuilder.Properties().Where(c => c.PropertyType == typeof(DateTime))
-                .Configure(c => c.HasColumnType("datetime2"));
+                .Configure(c => c.HasColumnType("date"));
 
             base.OnModelCreating(modelBuilder);
+        }
+        public void EfetuarLocacao(LocadoraDbContext db)
+        {
+
         }
     }
 }
